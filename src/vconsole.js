@@ -20,5 +20,5 @@ import 'core-js/stable/symbol';
 import VConsole from './core/core.js';
 
 // export
-export { VConsole };
+// export { VConsole };
 export default VConsole;
