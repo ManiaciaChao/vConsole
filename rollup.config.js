@@ -11,6 +11,7 @@ import styles from "rollup-plugin-styles";
 import license from "rollup-plugin-license";
 import pkg from "./package.json";
 import copy from "rollup-plugin-copy";
+import {resolve as resolvePath} from "path"
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -63,8 +64,9 @@ export default defineConfig({
     copy({
       targets: [
         {
-          src: Path.resolve(__dirname, "./src/vconsole.d.ts"),
-          dest: Path.resolve(__dirname, "./dist/vconsole.min.d.ts"),
+          src: resolvePath(__dirname, "./src/vconsole.d.ts"),
+          dest: resolvePath(__dirname, "./dist"),
+          rename: "vconsole.min.d.ts"
         },
       ],
     }),
