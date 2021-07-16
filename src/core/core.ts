@@ -26,12 +26,10 @@ import tplToolItem from './tool_item.html';
 
 // built-in plugins
 import VConsolePlugin from '../lib/plugin';
+import VConsoleSveltePlugin from '../lib/sveltePlugin';
 import VConsoleLogPlugin from '../log/log';
 import VConsoleDefaultPlugin from '../log/default';
 import VConsoleSystemPlugin from '../log/system';
-import VConsoleNetworkPlugin from '../network/network';
-import VConsoleElementPlugin from '../element/element';
-import VConsoleStoragePlugin from '../storage/storage';
 
 declare interface VConsoleOptions {
   defaultPlugins?: string[];
@@ -68,12 +66,10 @@ class VConsole {
 
   // export static class
   static VConsolePlugin = VConsolePlugin;
+  static VConsoleSveltePlugin = VConsoleSveltePlugin;
   static VConsoleLogPlugin = VConsoleLogPlugin;
   static VConsoleDefaultPlugin = VConsoleDefaultPlugin;
   static VConsoleSystemPlugin = VConsoleSystemPlugin;
-  static VConsoleNetworkPlugin = VConsoleNetworkPlugin;
-  static VConsoleElementPlugin = VConsoleElementPlugin;
-  static VConsoleStoragePlugin = VConsoleStoragePlugin;
 
   constructor(opt) {
     if (!!$.one(VCONSOLE_ID)) {
@@ -87,7 +83,7 @@ class VConsole {
 
     this.isInited = false;
     this.option = {
-      defaultPlugins: ['system', 'network', 'element', 'storage']
+      defaultPlugins: ['system', 'network', 'element', 'storage'],
     };
 
     this.activedTab = '';
@@ -101,7 +97,7 @@ class VConsole {
       startX: 0,
       startY: 0,
       endX: 0,
-      endY: 0
+      endY: 0,
     };
 
     // export helper functions to public
@@ -119,7 +115,7 @@ class VConsole {
     this._addBuiltInPlugins();
 
     // try to init
-    let _onload = function() {
+    let _onload = function () {
       if (that.isInited) {
         return;
       }
@@ -137,7 +133,7 @@ class VConsole {
     } else {
       // if document does not exist, wait for it
       let _timer;
-      let _pollingDocument = function() {
+      let _pollingDocument = function () {
         if (!!document && document.readyState == 'complete') {
           _timer && clearTimeout(_timer);
           _onload();
@@ -150,8 +146,8 @@ class VConsole {
   }
 
   /**
-  * add built-in plugins
-  */
+   * add built-in plugins
+   */
   _addBuiltInPlugins() {
     // add default log plugin
     this.addPlugin(new VConsoleDefaultPlugin('default', 'Log'));
@@ -159,13 +155,10 @@ class VConsole {
     // add other built-in plugins according to user's config
     const list = this.option.defaultPlugins;
     const plugins = {
-      'system': {proto: VConsoleSystemPlugin, name: 'System'},
-      'network': {proto: VConsoleNetworkPlugin, name: 'Network'},
-      'element': {proto: VConsoleElementPlugin, name: 'Element'},
-      'storage': {proto: VConsoleStoragePlugin, name: 'Storage'}
+      system: { proto: VConsoleSystemPlugin, name: 'System' },
     };
     if (!!list && tool.isArray(list)) {
-      for (let i=0; i<list.length; i++) {
+      for (let i = 0; i < list.length; i++) {
         let tab = plugins[list[i]];
         if (!!tab) {
           this.addPlugin(new tab.proto(list[i], tab.name));
@@ -177,20 +170,23 @@ class VConsole {
   }
 
   /**
-  * render panel DOM
-  * @private
-  */
+   * render panel DOM
+   * @private
+   */
   _render() {
-    if (! $.one(VCONSOLE_ID)) {
+    if (!$.one(VCONSOLE_ID)) {
       const e = document.createElement('div');
       e.innerHTML = tpl;
-      document.documentElement.insertAdjacentElement('beforeend', e.children[0]);
+      document.documentElement.insertAdjacentElement(
+        'beforeend',
+        e.children[0]
+      );
     }
     this.$dom = $.one(VCONSOLE_ID);
 
     // reposition switch button
     const switchX = <any>tool.getStorage('switch_x') * 1,
-          switchY = <any>tool.getStorage('switch_y') * 1;
+      switchY = <any>tool.getStorage('switch_y') * 1;
     this.setSwitchPosition(switchX, switchY);
 
     // modify font-size
@@ -199,7 +195,9 @@ class VConsole {
     if (viewportEl) {
       const viewportContent = viewportEl.getAttribute('content') || '';
       const initialScale = viewportContent.match(/initial\-scale\=\d+(\.\d+)?/);
-      const scale = initialScale ? parseFloat(initialScale[0].split('=')[1]) : 1;
+      const scale = initialScale
+        ? parseFloat(initialScale[0].split('=')[1])
+        : 1;
       if (scale < 1) {
         this.$dom.style.fontSize = 13 * dpr + 'px';
       }
@@ -213,9 +211,9 @@ class VConsole {
   }
 
   /**
-  * Update theme
-  * @private 
-  */
+   * Update theme
+   * @private
+   */
   _updateTheme() {
     let theme = this.option.theme;
     if (theme !== 'light' && theme !== 'dark') {
@@ -226,7 +224,11 @@ class VConsole {
 
   setSwitchPosition(switchX, switchY) {
     const $switch = $.one('.vc-switch', this.$dom);
-    [switchX, switchY] = this._getSwitchButtonSafeAreaXY($switch, switchX, switchY);
+    [switchX, switchY] = this._getSwitchButtonSafeAreaXY(
+      $switch,
+      switchX,
+      switchY
+    );
     this.switchPos.x = switchX;
     this.switchPos.y = switchY;
     $switch.style.right = switchX + 'px';
@@ -236,12 +238,18 @@ class VConsole {
   }
 
   /**
-  * Get an safe [x, y] position for switch button
-  * @private
-  */
+   * Get an safe [x, y] position for switch button
+   * @private
+   */
   _getSwitchButtonSafeAreaXY($switch, x, y) {
-    const docWidth = Math.max(document.documentElement.offsetWidth, window.innerWidth);
-    const docHeight = Math.max(document.documentElement.offsetHeight, window.innerHeight);
+    const docWidth = Math.max(
+      document.documentElement.offsetWidth,
+      window.innerWidth
+    );
+    const docHeight = Math.max(
+      document.documentElement.offsetHeight,
+      window.innerHeight
+    );
     // check edge
     if (x + $switch.offsetWidth > docWidth) {
       x = docWidth - $switch.offsetWidth;
@@ -249,109 +257,149 @@ class VConsole {
     if (y + $switch.offsetHeight > docHeight) {
       y = docHeight - $switch.offsetHeight;
     }
-    if (x < 0) { x = 0; }
-    if (y < 20) { y = 20; } // safe area for iOS Home indicator
+    if (x < 0) {
+      x = 0;
+    }
+    if (y < 20) {
+      y = 20;
+    } // safe area for iOS Home indicator
     return [x, y];
   }
 
   /**
-  * simulate tap event by touchstart & touchend
-  * @private
-  */
+   * simulate tap event by touchstart & touchend
+   * @private
+   */
   _mockTap() {
     let tapTime = 700, // maximun tap interval
-        tapBoundary = 10; // max tap move distance
+      tapBoundary = 10; // max tap move distance
 
     let lastTouchStartTime,
-        touchstartX,
-        touchstartY,
-        touchHasMoved = false,
-        targetElem = null;
+      touchstartX,
+      touchstartY,
+      touchHasMoved = false,
+      targetElem = null;
 
-    this.$dom.addEventListener('touchstart', function(e) { // todo: if double click
-      if (lastTouchStartTime === undefined) {
-        const touch = e.targetTouches[0];
-        const target = <Element>e.target;
-        touchstartX = touch.pageX;
-        touchstartY = touch.pageY;
-        lastTouchStartTime = e.timeStamp;
-        targetElem = (target.nodeType === Node.TEXT_NODE ? target.parentNode : target);
-      }
-    }, false);
+    this.$dom.addEventListener(
+      'touchstart',
+      function (e) {
+        // todo: if double click
+        if (lastTouchStartTime === undefined) {
+          const touch = e.targetTouches[0];
+          const target = <Element>e.target;
+          touchstartX = touch.pageX;
+          touchstartY = touch.pageY;
+          lastTouchStartTime = e.timeStamp;
+          targetElem =
+            target.nodeType === Node.TEXT_NODE ? target.parentNode : target;
+        }
+      },
+      false
+    );
 
-    this.$dom.addEventListener('touchmove', function(e) {
+    this.$dom.addEventListener('touchmove', function (e) {
       const touch = e.changedTouches[0];
-      if (Math.abs(touch.pageX - touchstartX) > tapBoundary || Math.abs(touch.pageY - touchstartY) > tapBoundary) {
+      if (
+        Math.abs(touch.pageX - touchstartX) > tapBoundary ||
+        Math.abs(touch.pageY - touchstartY) > tapBoundary
+      ) {
         touchHasMoved = true;
       }
     });
 
-    this.$dom.addEventListener('touchend', function(e) {
-      // move and time within limits, manually trigger `click` event
-      if (touchHasMoved === false && e.timeStamp - lastTouchStartTime < tapTime && targetElem != null) {
-        let tagName = targetElem.tagName.toLowerCase(),
+    this.$dom.addEventListener(
+      'touchend',
+      function (e) {
+        // move and time within limits, manually trigger `click` event
+        if (
+          touchHasMoved === false &&
+          e.timeStamp - lastTouchStartTime < tapTime &&
+          targetElem != null
+        ) {
+          let tagName = targetElem.tagName.toLowerCase(),
             needFocus = false,
             hasSelection = false;
-        switch (tagName) {
-          case 'textarea': // focus
-            needFocus = true; break;
-          case 'input':
-            switch (targetElem.type) {
-              case 'button':
-              case 'checkbox':
-              case 'file':
-              case 'image':
-              case 'radio':
-              case 'submit':
-                needFocus = false; break;
-              default:
-                needFocus = !targetElem.disabled && !targetElem.readOnly;
+          switch (tagName) {
+            case 'textarea': // focus
+              needFocus = true;
+              break;
+            case 'input':
+              switch (targetElem.type) {
+                case 'button':
+                case 'checkbox':
+                case 'file':
+                case 'image':
+                case 'radio':
+                case 'submit':
+                  needFocus = false;
+                  break;
+                default:
+                  needFocus = !targetElem.disabled && !targetElem.readOnly;
+              }
+            default:
+              break;
+          }
+          if (typeof window.getSelection === 'function') {
+            const selection = getSelection();
+            if (selection.rangeCount && selection.type === 'range') {
+              // type: None|Caret|Range
+              hasSelection = true;
             }
-          default:
-            break;
-        }
-        if (typeof window.getSelection === 'function') {
-          const selection = getSelection();
-          if (selection.rangeCount && selection.type === 'range') { // type: None|Caret|Range
-            hasSelection = true;
+          }
+          if (needFocus) {
+            targetElem.focus();
+          } else if (!hasSelection) {
+            e.preventDefault(); // prevent click 300ms later
+          }
+
+          if (!targetElem.disabled && !targetElem.readOnly) {
+            const touch = e.changedTouches[0];
+            const event = document.createEvent('MouseEvents');
+            event.initMouseEvent(
+              'click',
+              true,
+              true,
+              window,
+              1,
+              touch.screenX,
+              touch.screenY,
+              touch.clientX,
+              touch.clientY,
+              false,
+              false,
+              false,
+              false,
+              0,
+              null
+            );
+            event.initEvent('click', true, true);
+            targetElem.dispatchEvent(event);
           }
         }
-        if (needFocus) {
-          targetElem.focus();
-        } else if (!hasSelection) {
-          e.preventDefault(); // prevent click 300ms later
-        }
 
-        if (!targetElem.disabled && !targetElem.readOnly) {
-          const touch = e.changedTouches[0];
-          const event = document.createEvent('MouseEvents');
-          event.initMouseEvent('click', true, true, window, 1, touch.screenX, touch.screenY, touch.clientX, touch.clientY, false, false, false, false, 0, null);
-          event.initEvent('click', true, true);
-          targetElem.dispatchEvent(event);
-        }
-      }
-
-      // reset values
-      lastTouchStartTime = undefined;
-      touchHasMoved = false;
-      targetElem = null;
-    }, false);
+        // reset values
+        lastTouchStartTime = undefined;
+        touchHasMoved = false;
+        targetElem = null;
+      },
+      false
+    );
   }
   /**
-  * bind DOM events
-  * @private
-  */
+   * bind DOM events
+   * @private
+   */
   _bindEvent() {
     const that = this;
 
     // drag & drop switch button
     const $switch = $.one('.vc-switch', that.$dom);
-    $.bind($switch, 'touchstart', function(e) {
+    $.bind($switch, 'touchstart', function (e) {
       that.switchPos.startX = e.touches[0].pageX;
       that.switchPos.startY = e.touches[0].pageY;
       that.switchPos.hasMoved = false;
     });
-    $.bind($switch, 'touchend', function(e) {
+    $.bind($switch, 'touchend', function (e) {
       if (!that.switchPos.hasMoved) {
         return;
       }
@@ -360,14 +408,14 @@ class VConsole {
       that.switchPos.hasMoved = false;
       that.setSwitchPosition(that.switchPos.endX, that.switchPos.endY);
     });
-    $.bind($switch, 'touchmove', function(e) {
+    $.bind($switch, 'touchmove', function (e) {
       if (e.touches.length <= 0) {
         return;
       }
       const offsetX = e.touches[0].pageX - that.switchPos.startX,
-            offsetY = e.touches[0].pageY - that.switchPos.startY;
+        offsetY = e.touches[0].pageY - that.switchPos.startY;
       let x = Math.floor(that.switchPos.x - offsetX),
-          y = Math.floor(that.switchPos.y - offsetY);
+        y = Math.floor(that.switchPos.y - offsetY);
       [x, y] = that._getSwitchButtonSafeAreaXY($switch, x, y);
       $switch.style.right = x + 'px';
       $switch.style.bottom = y + 'px';
@@ -378,17 +426,17 @@ class VConsole {
     });
 
     // show console panel
-    $.bind($.one('.vc-switch', that.$dom), 'click', function() {
+    $.bind($.one('.vc-switch', that.$dom), 'click', function () {
       that.show();
     });
 
     // hide console panel
-    $.bind($.one('.vc-hide', that.$dom), 'click', function() {
+    $.bind($.one('.vc-hide', that.$dom), 'click', function () {
       that.hide();
     });
 
     // hide console panel when tap background mask
-    $.bind($.one('.vc-mask', that.$dom), 'click', function(e) {
+    $.bind($.one('.vc-mask', that.$dom), 'click', function (e) {
       if (e.target != $.one('.vc-mask')) {
         return false;
       }
@@ -396,21 +444,26 @@ class VConsole {
     });
 
     // show tab box
-    $.delegate($.one('.vc-tabbar', that.$dom), 'click', '.vc-tab', function(e) {
-      let tabName = this.dataset.tab;
-      if (tabName == that.activedTab) {
-        return;
+    $.delegate(
+      $.one('.vc-tabbar', that.$dom),
+      'click',
+      '.vc-tab',
+      function (e) {
+        let tabName = this.dataset.tab;
+        if (tabName == that.activedTab) {
+          return;
+        }
+        that.showTab(tabName);
       }
-      that.showTab(tabName);
-    });
+    );
 
     // disable background scrolling
     let $content = $.one('.vc-content', that.$dom);
     let preventMove = false;
     $.bind($content, 'touchstart', function (e) {
       let top = $content.scrollTop,
-          totalScroll = $content.scrollHeight,
-          currentScroll = top + $content.offsetHeight;
+        totalScroll = $content.scrollHeight,
+        currentScroll = top + $content.offsetHeight;
       if (top === 0) {
         // when content is on the top,
         // reset scrollTop to lower position to prevent iOS apply scroll action to background
@@ -419,7 +472,8 @@ class VConsole {
         // scrollTop always equals to 0 (it is always on the top),
         // so we need to prevent scroll event manually
         if ($content.scrollTop === 0) {
-          if (!$.hasClass(e.target, 'vc-cmd-input')) { // skip input
+          if (!$.hasClass(e.target, 'vc-cmd-input')) {
+            // skip input
             preventMove = true;
           }
         }
@@ -444,12 +498,12 @@ class VConsole {
     $.bind($content, 'touchend', function (e) {
       preventMove = false;
     });
-  };
+  }
 
   /**
-  * auto run after initialization
-  * @private
-  */
+   * auto run after initialization
+   * @private
+   */
   _autoRun() {
     this.isInited = true;
 
@@ -467,9 +521,9 @@ class VConsole {
   }
 
   /**
-  * trigger a vConsole.option event
-  * @protect
-  */
+   * trigger a vConsole.option event
+   * @protect
+   */
   triggerEvent(eventName: string, param?: any) {
     eventName = 'on' + eventName.charAt(0).toUpperCase() + eventName.slice(1);
     if (tool.isFunction(this.option[eventName])) {
@@ -478,23 +532,26 @@ class VConsole {
   }
 
   /**
-  * init a plugin
-  * @private
-  */
+   * init a plugin
+   * @private
+   */
   _initPlugin(plugin) {
     let that = this;
     plugin.vConsole = this;
     // start init
     plugin.trigger('init');
     // render tab (if it is a tab plugin then it should has tab-related events)
-    plugin.trigger('renderTab', function(tabboxHTML) {
+    plugin.trigger('renderTab', function (tabboxHTML) {
       // add to tabList
       that.tabList.push(plugin.id);
       // render tabbar
-      let $tabbar = $.render(tplTabbar, {id: plugin.id, name: plugin.name});
-      $.one('.vc-tabbar', that.$dom).insertAdjacentElement('beforeend', $tabbar);
+      let $tabbar = $.render(tplTabbar, { id: plugin.id, name: plugin.name });
+      $.one('.vc-tabbar', that.$dom).insertAdjacentElement(
+        'beforeend',
+        $tabbar
+      );
       // render tabbox
-      let $tabbox = $.render(tplTabbox, {id: plugin.id});
+      let $tabbox = $.render(tplTabbox, { id: plugin.id });
       if (!!tabboxHTML) {
         if (tool.isString(tabboxHTML)) {
           $tabbox.innerHTML += tabboxHTML;
@@ -504,20 +561,23 @@ class VConsole {
           $tabbox.insertAdjacentElement('beforeend', tabboxHTML);
         }
       }
-      $.one('.vc-content', that.$dom).insertAdjacentElement('beforeend', $tabbox);
+      $.one('.vc-content', that.$dom).insertAdjacentElement(
+        'beforeend',
+        $tabbox
+      );
     });
     // render top bar
-    plugin.trigger('addTopBar', function(btnList) {
+    plugin.trigger('addTopBar', function (btnList) {
       if (!btnList) {
         return;
       }
       let $topbar = $.one('.vc-topbar', that.$dom);
-      for (let i=0; i<btnList.length; i++) {
+      for (let i = 0; i < btnList.length; i++) {
         let item = btnList[i];
         let $item = <HTMLElement>$.render(tplTopBarItem, {
           name: item.name || 'Undefined',
           className: item.className || '',
-          pluginID: plugin.id
+          pluginID: plugin.id,
         });
         if (item.data) {
           for (let k in item.data) {
@@ -525,7 +585,7 @@ class VConsole {
           }
         }
         if (tool.isFunction(item.onClick)) {
-          $.bind($item, 'click', function(e) {
+          $.bind($item, 'click', function (e) {
             let enable = item.onClick.call($item);
             if (enable === false) {
               // do nothing
@@ -539,22 +599,22 @@ class VConsole {
       }
     });
     // render tool bar
-    plugin.trigger('addTool', function(toolList) {
+    plugin.trigger('addTool', function (toolList) {
       if (!toolList) {
         return;
       }
       let $defaultBtn = $.one('.vc-tool-last', that.$dom);
-      for (let i=0; i<toolList.length; i++) {
+      for (let i = 0; i < toolList.length; i++) {
         let item = toolList[i];
         let $item = $.render(tplToolItem, {
           name: item.name || 'Undefined',
-          pluginID: plugin.id
+          pluginID: plugin.id,
         });
         if (item.global == true) {
           $.addClass($item, 'vc-global-tool');
         }
         if (tool.isFunction(item.onClick)) {
-          $.bind($item, 'click', function(e) {
+          $.bind($item, 'click', function (e) {
             item.onClick.call($item);
           });
         }
@@ -567,9 +627,9 @@ class VConsole {
   }
 
   /**
-  * trigger an event for each plugin
-  * @private
-  */
+   * trigger an event for each plugin
+   * @private
+   */
   _triggerPluginsEvent(eventName) {
     for (let id in this.pluginList) {
       if (this.pluginList[id].isReady) {
@@ -579,9 +639,9 @@ class VConsole {
   }
 
   /**
-  * trigger an event by plugin's name
-  * @private
-  */
+   * trigger an event by plugin's name
+   * @private
+   */
   _triggerPluginEvent(pluginName, eventName) {
     let plugin = this.pluginList[pluginName];
     if (!!plugin && plugin.isReady) {
@@ -590,11 +650,11 @@ class VConsole {
   }
 
   /**
-  * add a new plugin
-  * @public
-  * @param object VConsolePlugin object
-  * @return boolean
-  */
+   * add a new plugin
+   * @public
+   * @param object VConsolePlugin object
+   * @return boolean
+   */
   addPlugin(plugin) {
     // ignore this plugin if it has already been installed
     if (this.pluginList[plugin.id] !== undefined) {
@@ -614,11 +674,11 @@ class VConsole {
   }
 
   /**
-  * remove a plugin
-  * @public
-  * @param string pluginID
-  * @return boolean
-  */
+   * remove a plugin
+   * @public
+   * @param string pluginID
+   * @return boolean
+   */
   removePlugin(pluginID) {
     pluginID = (pluginID + '').toLowerCase();
     let plugin = this.pluginList[pluginID];
@@ -636,7 +696,7 @@ class VConsole {
       $tabbar && $tabbar.parentNode.removeChild($tabbar);
       // remove topbar
       let $topbar = $.all('.vc-topbar-' + pluginID, this.$dom);
-      for (let i=0; i<$topbar.length; i++) {
+      for (let i = 0; i < $topbar.length; i++) {
         $topbar[i].parentNode.removeChild($topbar[i]);
       }
       // remove content
@@ -644,7 +704,7 @@ class VConsole {
       $content && $content.parentNode.removeChild($content);
       // remove tool bar
       let $toolbar = $.all('.vc-tool-' + pluginID, this.$dom);
-      for (let i=0; i<$toolbar.length; i++) {
+      for (let i = 0; i < $toolbar.length; i++) {
         $toolbar[i].parentNode.removeChild($toolbar[i]);
       }
     }
@@ -668,9 +728,9 @@ class VConsole {
   }
 
   /**
-  * show console panel
-  * @public
-  */
+   * show console panel
+   * @public
+   */
   show() {
     if (!this.isInited) {
       return;
@@ -682,7 +742,7 @@ class VConsole {
     $panel.style.display = 'block';
 
     // set 10ms delay to fix confict between display and transition
-    setTimeout(function() {
+    setTimeout(function () {
       $.addClass(that.$dom, 'vc-toggle');
       that._triggerPluginsEvent('showConsole');
       let $mask = $.one('.vc-mask', that.$dom);
@@ -691,9 +751,9 @@ class VConsole {
   }
 
   /**
-  * hide console panel
-  * @public
-  */
+   * hide console panel
+   * @public
+   */
   hide() {
     if (!this.isInited) {
       return;
@@ -708,9 +768,9 @@ class VConsole {
   }
 
   /**
-  * show switch button
-  * @public
-  */
+   * show switch button
+   * @public
+   */
   showSwitch() {
     if (!this.isInited) {
       return;
@@ -720,8 +780,8 @@ class VConsole {
   }
 
   /**
-  * hide switch button
-  */
+   * hide switch button
+   */
   hideSwitch() {
     if (!this.isInited) {
       return;
@@ -731,9 +791,9 @@ class VConsole {
   }
 
   /**
-  * show a tab
-  * @public
-  */
+   * show a tab
+   * @public
+   */
   showTab(tabID) {
     if (!this.isInited) {
       return;
@@ -763,9 +823,9 @@ class VConsole {
   }
 
   /**
-  * update option(s)
-  * @public
-  */
+   * update option(s)
+   * @public
+   */
   setOption(keyOrObj, value) {
     if (tool.isString(keyOrObj)) {
       this.option[keyOrObj] = value;
@@ -778,14 +838,16 @@ class VConsole {
       this._triggerPluginsEvent('updateOption');
       this._updateTheme();
     } else {
-      console.debug('The first parameter of vConsole.setOption() must be a string or an object.');
+      console.debug(
+        'The first parameter of vConsole.setOption() must be a string or an object.'
+      );
     }
   }
 
   /**
-  * uninstall vConsole
-  * @public
-  */
+   * uninstall vConsole
+   * @public
+   */
   destroy() {
     if (!this.isInited) {
       return;
@@ -801,7 +863,6 @@ class VConsole {
     // reverse isInited when destroyed
     this.isInited = false;
   }
-
 } // END class
 
 export default VConsole;
