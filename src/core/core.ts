@@ -150,11 +150,13 @@ class VConsole {
    */
   _addBuiltInPlugins() {
     // add default log plugin
-    this.addPlugin(new VConsoleDefaultPlugin('default', 'Log'));
+    // this.addPlugin(new VConsoleDefaultPlugin('default', 'Log'));
 
     // add other built-in plugins according to user's config
     const list = this.option.defaultPlugins;
     const plugins = {
+      default: { proto: VConsoleDefaultPlugin, name: 'Log' },
+
       system: { proto: VConsoleSystemPlugin, name: 'System' },
     };
     if (!!list && tool.isArray(list)) {

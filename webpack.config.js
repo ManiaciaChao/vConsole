@@ -13,7 +13,7 @@ module.exports = (env, argv) => {
     entry: {
       vconsole: Path.resolve(__dirname, './src/vconsole.ts'),
     },
-    target: ['web', 'es5'],
+    target: ['web', 'es6'],
     output: {
       path: Path.resolve(__dirname, './dist'),
       filename: '[name].min.js',

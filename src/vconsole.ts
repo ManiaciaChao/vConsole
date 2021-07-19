@@ -14,10 +14,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
  */
 
 // polyfill
-import 'core-js/stable/symbol';
+import "core-js/stable/symbol";
 
 // classes
-import VConsole from './core/core';
+import VConsole from "./core/core";
+export { default as VConsolePlugin } from "./lib/plugin";
+export { VConsoleSveltePlugin } from "./lib/sveltePlugin";
+export * as Tab from "./components/Tab";
+export { SimpleJSONStringify } from "./lib/tool";
 
 // export
 export { VConsole };
